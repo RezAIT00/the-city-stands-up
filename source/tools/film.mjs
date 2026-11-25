@@ -1,0 +1,7 @@
+// node tools/film.mjs prefix t1,t2,... [sub] [ss] [w] [h] : stills of the film through the deterministic path
+import { launch, serve, ROOT } from './lib.mjs'; import fs from 'fs'; import path from 'path';
+const [prefix, times, sub = '2', ss = '1', w = '1280', h = '720', pre = ''] = process.argv.slice(2); const { srv, port } = await serve(); const { browser, page } = await launch({ width: +w, height: +h });
+let bad = null; page.on('pageerror', e => { bad = e; }); 
+try { const t0 = Date.now(); await page.goto(`http://127.0.0.1:${port}/city.html?demo=1&dev=1&sub=${sub}&ss=${ss}&w=${w}&h=${h}`, { timeout: 120000 }); for (let k = 0; k < 1500; k++) { if (bad || await page.evaluate('window.READY===true||!!window.FAILED')) break; await new Promise(r => setTimeout(r, 300)); } const f = await page.evaluate('window.FAILED||""'); if (f) throw new Error(f); console.log('ready', ((Date.now() - t0) / 1000).toFixed(1) + 's', JSON.stringify(await page.evaluate('window.filmInfo'))); if (pre) console.log(JSON.stringify(await page.evaluate(pre)));
+  for (const t of times.split(',')) { const a = Date.now(); await page.evaluate(t => window.renderAt(t), +t); const url = await page.evaluate(() => document.getElementById('c').toDataURL('image/jpeg', .92)); fs.writeFileSync(path.join(ROOT, 'work', `${prefix}_${t}.jpg`), Buffer.from(url.split(',')[1], 'base64')); console.log(t, Date.now() - a + 'ms'); }
+} catch (e) { console.log('ERR', String(e.stack || e).slice(0, 2500)); } await browser.close(); srv.close();

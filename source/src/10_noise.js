@@ -1,0 +1,14 @@
+// ---- tiling 3D noise: R perlin-worley, G worley fbm, B value fbm, A smooth gradient noise ----
+function makeNoise3D(N = 64) {
+  const data = new Uint8Array(N * N * N * 4), r = RNG(91);
+  const grid = (f, seed) => { const g = new Float32Array(f * f * f * 3), rr = RNG(seed); for (let i = 0; i < g.length; i++) g[i] = rr(); return g; };
+  const worley = (f, seed) => { const g = grid(f, seed); return (x, y, z) => { const px = x * f, py = y * f, pz = z * f, ix = Math.floor(px), iy = Math.floor(py), iz = Math.floor(pz); let m = 9; for (let a = -1; a < 2; a++) for (let b = -1; b < 2; b++) for (let c = -1; c < 2; c++) { const X = (ix + a + f) % f, Y = (iy + b + f) % f, Z = (iz + c + f) % f, k = (X + f * (Y + f * Z)) * 3; const dx = ix + a + g[k] - px, dy = iy + b + g[k + 1] - py, dz = iz + c + g[k + 2] - pz, d = dx * dx + dy * dy + dz * dz; if (d < m) m = d; } return 1 - Math.min(1, Math.sqrt(m)); }; };
+  const perlin = (f, seed) => { const rr = RNG(seed), g = new Float32Array(f * f * f * 3); for (let i = 0; i < f * f * f; i++) { const z = rr() * 2 - 1, a = rr() * TAU, s = Math.sqrt(1 - z * z); g[i * 3] = s * Math.cos(a); g[i * 3 + 1] = s * Math.sin(a); g[i * 3 + 2] = z; }
+    return (x, y, z) => { const px = x * f, py = y * f, pz = z * f, ix = Math.floor(px), iy = Math.floor(py), iz = Math.floor(pz), fx = px - ix, fy = py - iy, fz = pz - iz; const w = t => t * t * t * (t * (t * 6 - 15) + 10), u = w(fx), v = w(fy), q = w(fz); const d = (a, b, c) => { const X = (ix + a) % f, Y = (iy + b) % f, Z = (iz + c) % f, k = (X + f * (Y + f * Z)) * 3; return g[k] * (fx - a) + g[k + 1] * (fy - b) + g[k + 2] * (fz - c); }; return lerp(lerp(lerp(d(0, 0, 0), d(1, 0, 0), u), lerp(d(0, 1, 0), d(1, 1, 0), u), v), lerp(lerp(d(0, 0, 1), d(1, 0, 1), u), lerp(d(0, 1, 1), d(1, 1, 1), u), v), q); }; };
+  const w4 = worley(4, 5), w8 = worley(8, 6), w16 = worley(16, 7), p4 = perlin(4, 8), p8 = perlin(8, 9), p16 = perlin(16, 10), p5 = perlin(5, 21), p11 = perlin(11, 22);
+  let o = 0; for (let k = 0; k < N; k++) for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const x = (i + .5) / N, y = (j + .5) / N, z = (k + .5) / N; const a = w4(x, y, z), b = w8(x, y, z), c = w16(x, y, z), pf = .5 + .5 * (p4(x, y, z) * 1.0 + p8(x, y, z) * .5 + p16(x, y, z) * .25) * 1.15;
+    const wf = a * .6 + b * .28 + c * .12; data[o++] = sat(lerp(pf, 1, wf * .9) * 1.6 - .62 + pf * .12) * 255; data[o++] = sat(b * .55 + c * .45) * 255; data[o++] = sat(pf) * 255; data[o++] = sat(.5 + p5(x, y, z) * .9 + p11(x, y, z) * .35) * 255; }
+  const t = new THREE.Data3DTexture(data, N, N, N); t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.wrapS = t.wrapT = t.wrapR = THREE.RepeatWrapping; t.generateMipmaps = true; t.unpackAlignment = 4; t.needsUpdate = true; return t;
+}
+G.uNoise.value = makeNoise3D(64);

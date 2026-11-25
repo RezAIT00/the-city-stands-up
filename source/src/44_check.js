@@ -1,0 +1,11 @@
+// ---------- piece rule checker: SAT over convex hulls, used by node and by window.checkPieces() ----------
+function piecePairs(list, poses, tol, onHit) {
+  const cell = 40, grid = new Map(), n = list.length, B = new Array(n); let tested = 0;
+  for (let i = 0; i < n; i++) { const p = list[i], X = poses[i], V = p.H.map(v => { const r = qrot(X.q, v); return [r[0] + X.p[0], r[1] + X.p[1], r[2] + X.p[2]]; }); const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]; for (const v of V) for (let k = 0; k < 3; k++) { if (v[k] < lo[k]) lo[k] = v[k]; if (v[k] > hi[k]) hi[k] = v[k]; } B[i] = { V, lo, hi, ax: null, ed: null }; for (let x = Math.floor(lo[0] / cell); x <= Math.floor(hi[0] / cell); x++) for (let y = Math.floor(lo[1] / cell); y <= Math.floor(hi[1] / cell); y++) for (let z = Math.floor(lo[2] / cell); z <= Math.floor(hi[2] / cell); z++) { const k = (x + 512) * 1048576 + (y + 512) * 1024 + (z + 512); let a = grid.get(k); if (!a) grid.set(k, a = []); a.push(i); } }
+  const seen = new Set(), proj = (V, a) => { let lo = 1e9, hi = -1e9; for (const v of V) { const d = v[0] * a[0] + v[1] * a[1] + v[2] * a[2]; if (d < lo) lo = d; if (d > hi) hi = d; } return [lo, hi]; };
+  const AX = i => B[i].ax || (B[i].ax = list[i].ax.map(a => qrot(poses[i].q, a))), ED = i => B[i].ed || (B[i].ed = list[i].ed.map(a => qrot(poses[i].q, a)));
+  for (const arr of grid.values()) for (let a = 0; a < arr.length; a++) for (let b = a + 1; b < arr.length; b++) { const i = Math.min(arr[a], arr[b]), j = Math.max(arr[a], arr[b]), key = i * 8192 + j; if (seen.has(key)) continue; seen.add(key); const P = B[i], S = B[j]; if (P.lo[0] > S.hi[0] - tol || S.lo[0] > P.hi[0] - tol || P.lo[1] > S.hi[1] - tol || S.lo[1] > P.hi[1] - tol || P.lo[2] > S.hi[2] - tol || S.lo[2] > P.hi[2] - tol) continue; tested++;
+    let depth = 1e9, sep = false; const test = x => { const l = Math.hypot(x[0], x[1], x[2]); if (l < 1e-4) return; const u = [x[0] / l, x[1] / l, x[2] / l], [a0, a1] = proj(P.V, u), [b0, b1] = proj(S.V, u), o = Math.min(a1 - b0, b1 - a0); if (o < depth) depth = o; if (o <= tol) sep = true; };
+    for (const x of AX(i)) { test(x); if (sep) break; } if (!sep) for (const x of AX(j)) { test(x); if (sep) break; } if (!sep) for (const x of ED(i)) { for (const y of ED(j)) { test(vcross(x, y)); if (sep) break; } if (sep) break; } if (!sep) onHit(i, j, depth); }
+  return tested;
+}

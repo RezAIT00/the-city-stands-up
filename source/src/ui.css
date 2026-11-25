@@ -1,0 +1,20 @@
+
+:root{--ink:#f7ecd6;--amber:#ffb35c;--cyan:#86dcff;--blood:#ff6a3d}
+#load{position:fixed;inset:0;display:grid;place-items:center;background:#07090b;z-index:9;font:500 15px/1.4 "Bahnschrift","DIN Alternate","Segoe UI",sans-serif;letter-spacing:.02em;color:var(--ink)}
+#hud{position:fixed;inset:0;pointer-events:none;font-family:"Bahnschrift","DIN Alternate","Segoe UI",sans-serif;color:var(--ink);text-shadow:0 1px 6px rgba(0,0,0,.65)}
+.bar{position:absolute;top:26px;width:min(34vw,460px)}.bar.l{left:28px}.bar.r{right:28px;text-align:right}
+.bar label,#en label{display:block;font-size:15px;font-weight:600;margin-bottom:7px}.bar em{font-style:normal;font-weight:400;opacity:.8;margin-left:8px}
+.track{height:9px;background:rgba(8,10,12,.55);outline:1px solid rgba(247,236,214,.35);overflow:hidden}.track i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd9a0,var(--amber));transition:width .18s}
+.bar.r .track i{margin-left:auto;background:linear-gradient(90deg,var(--blood),#ff9a5e)}
+#doll{width:58px;margin-top:12px;filter:drop-shadow(0 1px 5px rgba(0,0,0,.6))}
+#en{position:absolute;left:50%;bottom:30px;width:min(30vw,360px);transform:translateX(-50%);text-align:center}#en .track i{background:linear-gradient(90deg,#3f8fb8,var(--cyan))}#en.hot .track{outline-color:var(--cyan);box-shadow:0 0 22px rgba(120,210,255,.6)}
+#msg2{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(80vw,760px);text-align:center;font-size:21px;font-weight:500;margin:0}
+#stat{position:absolute;right:28px;bottom:26px;font-size:13px;display:flex;gap:16px;opacity:.85;font-variant-numeric:tabular-nums}#stat b{font-weight:600}
+#help{position:fixed;left:28px;bottom:26px;max-width:330px;font:400 13px/1.75 "Bahnschrift","Segoe UI",sans-serif;color:rgba(247,236,214,.86);text-shadow:0 1px 5px #000;pointer-events:none}#help b{color:#fff;font-weight:600;margin-left:6px}
+.nohelp #help{display:none}body[data-mode=film] #hud .bar,body[data-mode=film] #en,body[data-mode=film] #msg2,body[data-mode=film] #help{display:none}
+#pauseTag{position:fixed;top:26px;left:50%;transform:translateX(-50%);font:500 15px "Bahnschrift","Segoe UI",sans-serif;background:rgba(8,10,12,.62);padding:9px 16px;color:var(--ink)}
+#filmT{position:fixed;left:28px;top:22px;font:500 15px "Bahnschrift","Segoe UI",sans-serif;font-variant-numeric:tabular-nums;text-shadow:0 1px 5px #000}
+#bake{position:fixed;inset:0;display:grid;place-items:center;background:rgba(5,7,9,.72);font:500 17px "Bahnschrift","Segoe UI",sans-serif}#bake[hidden],#endcard[hidden],#pauseTag[hidden]{display:none}
+#corner{position:fixed;top:84px;right:28px;display:flex;gap:8px}button{font:600 14px "Bahnschrift","Segoe UI",sans-serif;color:var(--ink);background:rgba(8,10,12,.55);border:1px solid rgba(247,236,214,.4);padding:7px 14px;cursor:pointer}button:hover{background:var(--amber);color:#1a1208;border-color:var(--amber)}button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+#endcard{position:fixed;inset:0;display:flex;gap:14px;align-items:center;justify-content:center;background:rgba(5,7,9,.35)}
+body.shot #corner,body.shot #help,body.shot #stat{display:none}
